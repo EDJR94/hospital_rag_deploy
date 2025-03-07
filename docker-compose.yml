@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.12.0
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_PLUGINS=["apoc"]
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - mynet
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - NEO4J_URI=neo4j+s://cd6e9a2e.databases.neo4j.io
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=BrIqYti2p3U_rVwSq_X2azzRtCskLjKNq8N5dKPVhmY
+    ports:
+      - "8000:8000"
+    depends_on:
+      - neo4j
+    networks:
+      - mynet
+    expose:
+      - 8000
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - CHATBOT_URL=http://backend:8000/hospital_agent
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    networks:
+      - mynet
+
+networks:
+  mynet:
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
